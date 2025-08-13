@@ -1,0 +1,205 @@
+{% extends "player/base.html" %}
+{% load static %}
+
+{% block title %}{{ lecture_title }} - Audio Chat Player{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>{{ lecture_title }}</h1>
+    <p>講演音声とチャットボットの統合プレイヤー</p>
+</div>
+
+<div class="main-content">
+    <!-- Chat Section -->
+    <div class="chat-section">
+        <div class="chat-header">
+            <h2>💬 チャット</h2>
+        </div>
+        <div class="chat-content">
+            <!-- Dify chatbot iframe will be embedded here -->
+            <iframe 
+                id="chat-iframe"
+                class="chat-iframe"
+                src="about:blank"
+                title="Dify Chatbot"
+                allow="microphone; camera">
+            </iframe>
+            <div id="chat-placeholder" style="padding: 20px; text-align: center; color: #6c757d;">
+                <p>🤖 チャットボットを読み込み中...</p>
+                <p style="font-size: 0.9rem; margin-top: 10px;">
+                    講演内容について質問してください。<br>
+                    回答に含まれる時間範囲 [MM:SS-MM:SS] で音声が自動再生されます。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Player Section -->
+    <div class="player-section">
+        <div class="player-header">
+            <h2>🎵 音声プレイヤー</h2>
+        </div>
+        <div class="player-content">
+            <!-- Status messages -->
+            <div id="status-container"></div>
+            
+            <!-- Audio waveform -->
+            <div id="waveform" class="waveform-container">
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #6c757d;">
+                    <p>🎵 音声ファイルを読み込み中...</p>
+                </div>
+            </div>
+            
+            <!-- Player controls -->
+            <div class="controls">
+                <button id="play-btn" class="btn btn-primary" disabled>
+                    ▶️ 再生
+                </button>
+                <button id="pause-btn" class="btn btn-secondary" disabled>
+                    ⏸️ 停止
+                </button>
+                <div class="volume-control">
+                    <label for="volume-slider">🔊</label>
+                    <input 
+                        type="range" 
+                        id="volume-slider" 
+                        class="volume-slider"
+                        min="0" 
+                        max="100" 
+                        value="50"
+                        disabled>
+                    <span id="volume-display">50%</span>
+                </div>
+            </div>
+            
+            <!-- Time display -->
+            <div class="time-display">
+                <div>現在時刻: <span id="current-time">00:00</span></div>
+                <div>総時間: <span id="total-time">00:00</span></div>
+                <div id="region-time" style="display: none;">
+                    選択範囲: <span id="region-start">00:00</span> - <span id="region-end">00:00</span>
+                </div>
+            </div>
+            
+            <!-- Audio file info -->
+            {% if not audio_exists %}
+            <div class="status-message status-error">
+                ⚠️ 音声ファイルが見つかりません: {{ audio_file_path }}
+            </div>
+            {% else %}
+            <div class="status-message status-success">
+                ✅ 音声ファイル準備完了: {{ audio_file_path }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Load the modular audio player JavaScript -->
+<script src="{% load static %}{% static 'js/audio-player.js' %}"></script>
+
+<script>
+// Global audio player controller instance
+let audioPlayerController = null;
+
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApplication();
+});
+
+// Initialize the entire application
+function initializeApplication() {
+    // Check if audio file exists
+    {% if not audio_exists %}
+    showErrorMessage('音声ファイルが見つかりません。管理者に連絡してください。');
+    return;
+    {% endif %}
+    
+    // Initialize audio player controller
+    audioPlayerController = new AudioPlayerController('audio-player', '{{ audio_url }}');
+    
+    if (audioPlayerController.initialize()) {
+        console.log('Audio player initialized successfully');
+    } else {
+        showErrorMessage('音声プレイヤーの初期化に失敗しました。');
+    }
+    
+    // Initialize chat listener placeholder
+    initializeChatListener();
+}
+
+// Initialize chat message listener (placeholder for iframe communication)
+function initializeChatListener() {
+    // This will be implemented in task 7 (iframe communication)
+    console.log('Chat listener initialized (placeholder)');
+    
+    // For now, show placeholder message
+    setTimeout(() => {
+        const chatPlaceholder = document.getElementById('chat-placeholder');
+        if (chatPlaceholder) {
+            chatPlaceholder.innerHTML = `
+                <p>🤖 チャットボット統合は次のタスクで実装されます</p>
+                <p style="font-size: 0.9rem; margin-top: 10px;">
+                    現在は音声プレイヤーのテストが可能です。<br>
+                    波形をクリックして再生位置を変更できます。
+                </p>
+            `;
+        }
+    }, 2000);
+}
+
+// Utility function for showing error messages
+function showErrorMessage(message) {
+    const statusContainer = document.getElementById('status-container');
+    if (statusContainer) {
+        statusContainer.innerHTML = `<div class="status-message status-error">${message}</div>`;
+    }
+}
+
+// Public API for chat integration (will be used in later tasks)
+window.AudioPlayer = {
+    setTimeRange: function(startTime, endTime) {
+        if (audioPlayerController) {
+            return audioPlayerController.setTimeRange(startTime, endTime);
+        }
+        console.warn('Audio player controller not initialized');
+        return false;
+    },
+    
+    play: function() {
+        if (audioPlayerController && audioPlayerController.player) {
+            audioPlayerController.player.play();
+        }
+    },
+    
+    pause: function() {
+        if (audioPlayerController && audioPlayerController.player) {
+            audioPlayerController.player.pause();
+        }
+    },
+    
+    getCurrentTime: function() {
+        if (audioPlayerController && audioPlayerController.player) {
+            return audioPlayerController.player.getCurrentTime();
+        }
+        return 0;
+    },
+    
+    getDuration: function() {
+        if (audioPlayerController && audioPlayerController.player) {
+            return audioPlayerController.player.getDuration();
+        }
+        return 0;
+    },
+    
+    isReady: function() {
+        if (audioPlayerController && audioPlayerController.player) {
+            return audioPlayerController.player.isReady();
+        }
+        return false;
+    }
+};
+</script>
+{% endblock %}

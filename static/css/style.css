@@ -1,0 +1,50 @@
+/* Additional custom styles for audio chat player */
+/* This file can be used for any additional CSS that doesn't fit in the base template */
+
+/* Custom WaveSurfer.js region styles */
+.wavesurfer-region.highlight {
+    background: rgba(40, 167, 69, 0.2) !important;
+    border-left: 2px solid #28a745 !important;
+    border-right: 2px solid #28a745 !important;
+}
+
+/* Chat iframe loading animation */
+.chat-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: #f8f9fa;
+}
+
+.chat-loading::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid #dee2e6;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive improvements for very small screens */
+@media (max-width: 320px) {
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .volume-control {
+        margin-top: 10px;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+}
